@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Crea bucket, Lambda y vinculación con API Gateway REST existente
+Description: Crea Lambda y vinculación con API Gateway REST existente
 
 Parameters:
   LambdaS3Key:
@@ -19,13 +19,6 @@ Parameters:
     Description: ID del recurso raíz / en el API Gateway
 
 Resources:
-  # 1️⃣ Bucket de S3 donde se sube el .zip
-  LambdaBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub "order-function-deploy-${AWS::AccountId}-${AWS::Region}"
-
-  # 2️⃣ Lambda function
   OrderFunction:
     Type: AWS::Lambda::Function
     Properties:
@@ -37,10 +30,9 @@ Resources:
       MemorySize: 256
       Role: arn:aws:iam::654654589924:role/service-role/lamb_gamboa-role-w0fpkkqf
       Code:
-        S3Bucket: !Ref LambdaBucket
+        S3Bucket: order-function-deploy-654654589924-us-east-1
         S3Key: !Ref LambdaS3Key
 
-  # 3️⃣ Permisos para invocar desde API Gateway
   OrderFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -57,7 +49,6 @@ Resources:
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/swagger
 
-  # 4️⃣ Métodos sobre /api/order (GET, POST, PUT, DELETE)
   GetOrderMethod:
     Type: AWS::ApiGateway::Method
     Properties:
@@ -106,7 +97,6 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
-  # 5️⃣ Recurso /swagger y su método GET
   SwaggerResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -125,8 +115,3 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
-
-Outputs:
-  LambdaBucketName:
-    Value: !Ref LambdaBucket
-    Description: Nombre del bucket S3 usado para subir el código Lambda
