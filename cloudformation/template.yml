@@ -47,7 +47,7 @@ Resources:
       FunctionName: !Ref OrderFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/swagger
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/api/order/swagger
 
   GetOrderMethod:
     Type: AWS::ApiGateway::Method
@@ -96,19 +96,20 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
-        
-  SwaggerResourceUnderOrder:
+
+  # Crear recurso /api/order/swagger
+  SwaggerResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref RestApiId
       ParentId: !Ref OrderResourceId
       PathPart: swagger
 
-  GetSwaggerMethodUnderOrder:
+  GetSwaggerMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref SwaggerResourceUnderOrder
+      ResourceId: !Ref SwaggerResource
       HttpMethod: GET
       AuthorizationType: NONE
       Integration:
@@ -116,10 +117,20 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
-  SwaggerFunctionPermissionUnderOrder:
-    Type: AWS::Lambda::Permission
+  # Despliegue de la etapa dev (para que aparezca todo)
+  DevDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - GetOrderMethod
+      - PostOrderMethod
+      - PutOrderMethod
+      - DeleteOrderMethod
+      - GetSwaggerMethod
     Properties:
-      FunctionName: !Ref OrderFunction
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/api/order/swagger
+      RestApiId: !Ref RestApiId
+      StageName: dev
+
+Outputs:
+  LambdaFunctionName:
+    Description: Nombre de la función Lambda
+    Value: !Ref OrderFunction
