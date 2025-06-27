@@ -2,7 +2,7 @@ name: Deploy Lambda to AWS
 
 on:
   push:
-    branches: [main, master]  # Ajusta según tu rama
+    branches: [main, master]  # Ajusta según tu rama principal
   workflow_dispatch:
 
 env:
@@ -10,10 +10,11 @@ env:
   STACK_NAME: order-function-stack
   LAMBDA_PACKAGE_KEY: order_function.zip
 
-  # IDs del API Gateway existente (deben estar definidos en GitHub Secrets)
+  # Variables de entorno (se espera que estén en Secrets)
   REST_API_ID: ${{ secrets.REST_API_ID }}
   ORDER_RESOURCE_ID: ${{ secrets.ORDER_RESOURCE_ID }}
   ROOT_RESOURCE_ID: ${{ secrets.ROOT_RESOURCE_ID }}
+  AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
 jobs:
   deploy:
@@ -37,22 +38,6 @@ jobs:
           zip -r ../$LAMBDA_PACKAGE_KEY .
           cd ..
 
-      - name: 🧹 Eliminar stack en estado ROLLBACK_COMPLETE (si aplica)
-        run: |
-          state=$(aws cloudformation describe-stacks \
-            --stack-name "$STACK_NAME" \
-            --query "Stacks[0].StackStatus" \
-            --output text 2>/dev/null || echo "")
-
-          if [ "$state" == "ROLLBACK_COMPLETE" ]; then
-            echo "⚠️ Stack en estado ROLLBACK_COMPLETE. Eliminando..."
-            aws cloudformation delete-stack --stack-name "$STACK_NAME"
-            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
-            echo "✅ Stack eliminado. Listo para recrear."
-          else
-            echo "Estado actual del stack: $state"
-          fi
-
       - name: 🔐 Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -60,27 +45,39 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      - name: 🧹 Eliminar stack en estado ROLLBACK_COMPLETE (si aplica)
+        run: |
+          state=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].StackStatus" \
+            --output text 2>/dev/null || echo "")
+          if [ "$state" == "ROLLBACK_COMPLETE" ]; then
+            echo "⚠️ Stack en estado ROLLBACK_COMPLETE. Eliminando..."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME"
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+            echo "✅ Stack eliminado. Listo para recrear."
+          else
+            echo "🧾 Estado actual del stack: $state"
+          fi
+
       - name: 🔍 Determinar nombre del bucket
         id: getbucket
         run: |
           bucket=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='LambdaBucketName'].OutputValue" \
-            --output text 2>/dev/null)
-
+            --output text 2>/dev/null || echo "")
           if [ -z "$bucket" ] || [ "$bucket" == "None" ]; then
-            bucket="order-function-deploy-${{ secrets.AWS_ACCOUNT_ID }}-${{ env.AWS_REGION }}"
+            bucket="order-function-deploy-${{ env.AWS_ACCOUNT_ID }}-${{ env.AWS_REGION }}"
             echo "🆕 Usando bucket por defecto: $bucket"
           else
             echo "✅ Usando bucket del stack existente: $bucket"
           fi
-
           echo "bucket_name=$bucket" >> $GITHUB_OUTPUT
+          echo "BUCKET_NAME=$bucket" >> $GITHUB_ENV
 
       - name: 🪣 Crear bucket si no existe
         run: |
-          BUCKET_NAME="${{ steps.getbucket.outputs.bucket_name }}"
-
           if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
             echo "✅ Bucket $BUCKET_NAME ya existe"
           else
@@ -91,8 +88,6 @@ jobs:
               aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint="$AWS_REGION"
             fi
           fi
-
-          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
 
       - name: ☁️ Subir ZIP a S3
         run: |
