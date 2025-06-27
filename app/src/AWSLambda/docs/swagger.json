@@ -1,0 +1,91 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Order Lambda API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/order": {
+      "get": {
+        "summary": "Obtener orden",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Orden encontrada"
+          }
+        }
+      },
+      "post": {
+        "summary": "Crear orden",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Orden creada"
+          }
+        }
+      },
+      "put": {
+        "summary": "Actualizar orden",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Orden actualizada"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Eliminar orden",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/OrderRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Orden eliminada"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "OrderRequest": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          }
+        },
+        "required": [ "userId", "orderId" ]
+      }
+    }
+  }
+}

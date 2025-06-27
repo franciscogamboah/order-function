@@ -1,0 +1,26 @@
+version: "3.3"
+services:
+
+  ci-test-runner:
+    depends_on:
+      - ci-test-pg
+    build:
+      dockerfile: ./docker/run-tests.dockerfile
+      context: .
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=ci-test-pg;Port=5432;Database=test_db;User Id=test_user;Password=test_pass;"
+      ASPNETCORE_ENVIRONMENT: "Development"
+    networks:
+      - bope-test-lambda-comision-network
+
+  ci-test-pg:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_PASSWORD: test_pass
+      POSTGRES_USER: test_user
+      POSTGRES_DB: test_db
+    networks:
+      - bope-test-lambda-comision-network
+
+networks:
+  bope-test-lambda-comision-network:

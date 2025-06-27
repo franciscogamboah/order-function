@@ -1,0 +1,37 @@
+{
+    "family": "PROJECT_NAME",
+    "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/PROJECT_NAME-task",
+    "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/PROJECT_NAME-task",
+    "memory": "CONTAINER_MEMORY",
+    "cpu": "CONTAINER_CPU",
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "networkMode": "awsvpc",
+    "containerDefinitions": [
+        {
+            "image": "ACCOUNT_ID.dkr.ecr.DEPLOY_REGION.amazonaws.com/IMAGE_DEPLOY",
+            "name": "PROJECT_NAME",
+            "portMappings": [
+                {
+                    "containerPort": 80
+                }
+            ],
+            "essential": true,
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "PROJECT_NAME",
+                    "awslogs-region": "DEPLOY_REGION",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "secrets": [
+                {
+                    "name": "ASPNET_SECRETS_MANAGER",
+                    "valueFrom": "PROJECT_SECRET_ARN"
+                }
+            ]
+        }
+    ]
+}

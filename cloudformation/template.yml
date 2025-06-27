@@ -1,0 +1,106 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Crea bucket, Lambda y vinculación con API Gateway REST existente
+
+Parameters:
+  LambdaS3Key:
+    Type: String
+    Description: Nombre del archivo ZIP del código de Lambda (ej: order_function.zip)
+
+  RestApiId:
+    Type: String
+    Description: ID del API Gateway REST ya creado (ej: r36c7jyp0b)
+
+  OrderResourceId:
+    Type: String
+    Description: ID del recurso /api/order en el API Gateway
+
+  RootResourceId:
+    Type: String
+    Description: ID del recurso raíz / en el API Gateway
+
+Resources:
+  # 1️⃣ Bucket de S3 donde se sube el .zip
+  LambdaBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "order-function-deploy-${AWS::AccountId}-${AWS::Region}"
+
+  # 2️⃣ Lambda function
+  OrderFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: order_function
+      Handler: AWSLambda::Function::FunctionHandler
+      Runtime: dotnet8
+      Architectures: [x86_64]
+      Timeout: 30
+      MemorySize: 256
+      Role: arn:aws:iam::654654589924:role/service-role/lamb_gamboa-role-w0fpkkqf
+      Code:
+        S3Bucket: !Ref LambdaBucket
+        S3Key: !Ref LambdaS3Key
+
+  # 3️⃣ Permisos para invocar desde API Gateway
+  OrderFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrderFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/api/order
+
+  SwaggerFunctionPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrderFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/swagger
+
+  # 4️⃣ Métodos sobre /api/order (GET, POST, PUT, DELETE)
+  GetOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref OrderResourceId
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
+  PostOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref OrderResourceId
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
+  PutOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref OrderResourceId
+      HttpMethod: PUT
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
+  DeleteOrderMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref OrderResourceId
+      HttpMethod: DELETE
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY_
