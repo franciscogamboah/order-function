@@ -103,4 +103,30 @@ Resources:
       AuthorizationType: NONE
       Integration:
         IntegrationHttpMethod: POST
-        Type: AWS_PROXY_
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
+  # 5️⃣ Recurso /swagger y su método GET
+  SwaggerResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApiId
+      ParentId: !Ref RootResourceId
+      PathPart: swagger
+
+  GetSwaggerMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref SwaggerResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
+Outputs:
+  LambdaBucketName:
+    Value: !Ref LambdaBucket
+    Description: Nombre del bucket S3 usado para subir el código Lambda
