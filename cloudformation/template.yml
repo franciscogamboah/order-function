@@ -96,22 +96,30 @@ Resources:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
-
-  SwaggerResource:
+        
+  SwaggerResourceUnderOrder:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref RestApiId
-      ParentId: !Ref RootResourceId
+      ParentId: !Ref OrderResourceId
       PathPart: swagger
 
-  GetSwaggerMethod:
+  GetSwaggerMethodUnderOrder:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref SwaggerResource
+      ResourceId: !Ref SwaggerResourceUnderOrder
       HttpMethod: GET
       AuthorizationType: NONE
       Integration:
         IntegrationHttpMethod: POST
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
+  SwaggerFunctionPermissionUnderOrder:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref OrderFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/api/order/swagger
