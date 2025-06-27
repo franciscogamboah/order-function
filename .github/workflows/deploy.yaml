@@ -2,14 +2,15 @@ name: Deploy Lambda to AWS
 
 on:
   push:
-    branches: [master]  # o "main" si usas otra rama
+    branches: [main, master]  # Ajusta según tu rama
+  workflow_dispatch:
 
 env:
   AWS_REGION: us-east-1
   STACK_NAME: order-function-stack
   LAMBDA_PACKAGE_KEY: order_function.zip
 
-  # IDs del API Gateway existente (puedes moverlos a GitHub Secrets o `action.yaml`)
+  # IDs del API Gateway existente (deben estar definidos en GitHub Secrets)
   REST_API_ID: ${{ secrets.REST_API_ID }}
   ORDER_RESOURCE_ID: ${{ secrets.ORDER_RESOURCE_ID }}
   ROOT_RESOURCE_ID: ${{ secrets.ROOT_RESOURCE_ID }}
@@ -19,48 +20,61 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
+      - name: 📥 Checkout del código
         uses: actions/checkout@v3
 
-      - name: Instalar .NET SDK
+      - name: 🧰 Instalar .NET SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
 
-      - name: Publicar Lambda
+      - name: 🛠 Publicar Lambda
         run: dotnet publish ./app/src/AWSLambda/AWSLambda.csproj -c Release -o ./publish
 
-      - name: Crear ZIP de Lambda
+      - name: 📦 Crear ZIP de Lambda
         run: |
           cd publish
           zip -r ../$LAMBDA_PACKAGE_KEY .
           cd ..
 
-      - name: Configurar credenciales AWS
+      - name: 🔐 Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Obtener nombre del bucket creado por la plantilla (si ya existe el stack)
+      - name: 🔍 Obtener nombre del bucket
         id: getbucket
         run: |
           BUCKET_NAME=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='LambdaBucketName'].OutputValue" \
             --output text || echo "")
-          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
           if [ -z "$BUCKET_NAME" ]; then
-            echo "❌ No se encontró un bucket creado. Se usará el nombre esperado por la plantilla."
-            echo "BUCKET_NAME=order-function-deploy-${{ secrets.AWS_ACCOUNT_ID }}-${{ env.AWS_REGION }}" >> $GITHUB_ENV
+            BUCKET_NAME=order-function-deploy-${{ secrets.AWS_ACCOUNT_ID }}-${{ env.AWS_REGION }}
+          fi
+          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
+          echo "Bucket: $BUCKET_NAME"
+
+      - name: 🪣 Crear bucket si no existe
+        run: |
+          if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
+            echo "✅ Bucket $BUCKET_NAME ya existe"
+          else
+            echo "🚀 Creando bucket $BUCKET_NAME..."
+            if [ "$AWS_REGION" = "us-east-1" ]; then
+              aws s3api create-bucket --bucket "$BUCKET_NAME"
+            else
+              aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint="$AWS_REGION"
+            fi
           fi
 
-      - name: Subir ZIP a S3
+      - name: ☁️ Subir ZIP a S3
         run: |
           aws s3 cp $LAMBDA_PACKAGE_KEY s3://$BUCKET_NAME/$LAMBDA_PACKAGE_KEY
 
-      - name: Desplegar CloudFormation
+      - name: 🚀 Desplegar CloudFormation
         run: |
           aws cloudformation deploy \
             --template-file cloudformation/template.yaml \
