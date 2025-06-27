@@ -2,12 +2,12 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <PublishReadyToRun>false</PublishReadyToRun>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <AWSProjectType>Lambda</AWSProjectType>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    <PublishReadyToRun>true</PublishReadyToRun>
     <UserSecretsId>757c5587-fc30-4f17-b5fb-c181183e8a8e</UserSecretsId>
   </PropertyGroup>
 
