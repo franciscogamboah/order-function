@@ -44,21 +44,27 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: 🔍 Obtener nombre del bucket
+      - name: 🔍 Determinar nombre del bucket
         id: getbucket
         run: |
-          BUCKET_NAME=$(aws cloudformation describe-stacks \
+          bucket=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
             --query "Stacks[0].Outputs[?OutputKey=='LambdaBucketName'].OutputValue" \
-            --output text || echo "")
-          if [ -z "$BUCKET_NAME" ]; then
-            BUCKET_NAME=order-function-deploy-${{ secrets.AWS_ACCOUNT_ID }}-${{ env.AWS_REGION }}
+            --output text 2>/dev/null)
+
+          if [ -z "$bucket" ] || [ "$bucket" == "None" ]; then
+            bucket="order-function-deploy-${{ secrets.AWS_ACCOUNT_ID }}-${{ env.AWS_REGION }}"
+            echo "🆕 Usando bucket por defecto: $bucket"
+          else
+            echo "✅ Usando bucket del stack existente: $bucket"
           fi
-          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
-          echo "Bucket: $BUCKET_NAME"
+
+          echo "bucket_name=$bucket" >> $GITHUB_OUTPUT
 
       - name: 🪣 Crear bucket si no existe
         run: |
+          BUCKET_NAME="${{ steps.getbucket.outputs.bucket_name }}"
+
           if aws s3api head-bucket --bucket "$BUCKET_NAME" 2>/dev/null; then
             echo "✅ Bucket $BUCKET_NAME ya existe"
           else
@@ -69,6 +75,8 @@ jobs:
               aws s3api create-bucket --bucket "$BUCKET_NAME" --region "$AWS_REGION" --create-bucket-configuration LocationConstraint="$AWS_REGION"
             fi
           fi
+
+          echo "BUCKET_NAME=$BUCKET_NAME" >> $GITHUB_ENV
 
       - name: ☁️ Subir ZIP a S3
         run: |
