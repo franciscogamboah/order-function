@@ -77,7 +77,7 @@ jobs:
       - name: 🚀 Desplegar CloudFormation
         run: |
           aws cloudformation deploy \
-            --template-file cloudformation/template.yaml \
+            --template-file cloudformation/template.yml \
             --stack-name $STACK_NAME \
             --capabilities CAPABILITY_IAM \
             --parameter-overrides \
