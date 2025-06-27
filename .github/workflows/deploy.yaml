@@ -37,6 +37,22 @@ jobs:
           zip -r ../$LAMBDA_PACKAGE_KEY .
           cd ..
 
+      - name: 🧹 Eliminar stack en estado ROLLBACK_COMPLETE (si aplica)
+        run: |
+          state=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query "Stacks[0].StackStatus" \
+            --output text 2>/dev/null || echo "")
+
+          if [ "$state" == "ROLLBACK_COMPLETE" ]; then
+            echo "⚠️ Stack en estado ROLLBACK_COMPLETE. Eliminando..."
+            aws cloudformation delete-stack --stack-name "$STACK_NAME"
+            aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+            echo "✅ Stack eliminado. Listo para recrear."
+          else
+            echo "Estado actual del stack: $state"
+          fi
+
       - name: 🔐 Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v2
         with:
