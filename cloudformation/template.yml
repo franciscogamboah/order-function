@@ -4,11 +4,11 @@ Description: Crea bucket, Lambda y vinculación con API Gateway REST existente
 Parameters:
   LambdaS3Key:
     Type: String
-    Description: Nombre del archivo ZIP del código de Lambda (ej: order_function.zip)
+    Description: Nombre del archivo ZIP del código de Lambda
 
   RestApiId:
     Type: String
-    Description: ID del API Gateway REST ya creado (ej: r36c7jyp0b)
+    Description: ID del API Gateway REST ya creado
 
   OrderResourceId:
     Type: String
