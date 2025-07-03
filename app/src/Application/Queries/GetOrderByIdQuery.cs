@@ -1,10 +1,11 @@
-﻿using System.Net;
-using System.Text.Json;
-using Amazon.DynamoDBv2.Model;
+﻿using Amazon.DynamoDBv2.Model;
+using Application.Common.Helpers;
 using Application.Common.Infrastructure;
 using Application.Common.Interfaces;
 using Application.Common.Response;
 using Domain.Entities;
+using System.Net;
+using System.Text.Json;
 
 namespace Application.Queries;
 public class GetOrderByIdQuery
@@ -12,7 +13,11 @@ public class GetOrderByIdQuery
     #region Declaraciones y Constructor
     private readonly IDynamoDbService _db;
     private readonly IHelpers _helpers;
-    public GetOrderByIdQuery(IDynamoDbService db) => _db = db;
+    public GetOrderByIdQuery(IDynamoDbService db)
+    {
+        _db = db;
+        _helpers = new Helpers();
+    }
     #endregion
 
     #region Métodos
@@ -22,7 +27,7 @@ public class GetOrderByIdQuery
         {
             var response = await _db.GetOrderAsync(userId, orderId);
 
-            if (response is not null)
+            if (response is null)
             {
                 return new OrderResponse()
                 {

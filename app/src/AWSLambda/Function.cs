@@ -1,15 +1,17 @@
-﻿using System.Text.Json;
-using Amazon.DynamoDBv2;
+﻿using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
 using Application.Commands.Create;
 using Application.Commands.Delete;
 using Application.Commands.Update;
+using Application.Common.Helpers;
 using Application.Common.Infrastructure;
+using Application.Common.Interfaces;
 using Application.Common.Request;
 using Application.Common.Response;
 using Application.Queries;
 using AWS.Lambda.Powertools.Logging;
+using System.Text.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -18,6 +20,7 @@ namespace AWSLambda;
 public class Function
 {
     private readonly IDynamoDbService _db = new DynamoDbService(new AmazonDynamoDBClient());
+
     [Logging(LogEvent = true)] // Esto loggea automáticamente el evento recibido
 
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
