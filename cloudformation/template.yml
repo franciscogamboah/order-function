@@ -35,6 +35,11 @@ Resources:
 
   OrderFunctionPermission:
     Type: AWS::Lambda::Permission
+    DependsOn:
+      - GetOrderMethod
+      - PostOrderMethod
+      - PutOrderMethod
+      - DeleteOrderMethod
     Properties:
       FunctionName: !Ref OrderFunction
       Action: lambda:InvokeFunction
@@ -43,11 +48,14 @@ Resources:
 
   SwaggerFunctionPermission:
     Type: AWS::Lambda::Permission
+    DependsOn:
+      - GetSwaggerMethod
+      - GetSwaggerUIMethod
     Properties:
       FunctionName: !Ref OrderFunction
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/GET/api/order/swagger
+      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/api/order/*
 
   GetOrderMethod:
     Type: AWS::ApiGateway::Method
@@ -97,7 +105,7 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
-  # Crear recurso /api/order/swagger
+  # Recurso /api/order/swagger
   SwaggerResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -117,6 +125,7 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
+  # Recurso /api/order/ui
   SwaggerUIResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -136,7 +145,6 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
-  # Despliegue de la etapa dev (para que aparezca todo)
   DevDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
