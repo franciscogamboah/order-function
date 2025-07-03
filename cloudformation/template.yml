@@ -149,8 +149,6 @@ Resources:
     Properties:
       RestApiId: !Ref RestApiId
       StageName: dev
-    Metadata:
-      BuildDate: !Sub ${AWS::Timestamp}
 
 Outputs:
   LambdaFunctionName:
