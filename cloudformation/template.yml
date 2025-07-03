@@ -117,6 +117,25 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
+  SwaggerUIResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApiId
+      ParentId: !Ref OrderResourceId
+      PathPart: ui
+
+  GetSwaggerUIMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApiId
+      ResourceId: !Ref SwaggerUIResource
+      HttpMethod: GET
+      AuthorizationType: NONE
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
+
   # Despliegue de la etapa dev (para que aparezca todo)
   DevDeployment:
     Type: AWS::ApiGateway::Deployment
@@ -126,9 +145,12 @@ Resources:
       - PutOrderMethod
       - DeleteOrderMethod
       - GetSwaggerMethod
+      - GetSwaggerUIMethod
     Properties:
       RestApiId: !Ref RestApiId
       StageName: dev
+    Metadata:
+      BuildDate: !Sub ${AWS::Timestamp}
 
 Outputs:
   LambdaFunctionName:
