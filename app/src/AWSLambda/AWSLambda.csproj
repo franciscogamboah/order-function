@@ -35,14 +35,15 @@
     <None Update="appsettings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="aws-lambda-tools-defaults.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
     <ItemGroup>
       <EmbeddedResource Include="docs\swagger.json" />
       <EmbeddedResource Include="docs\swagger-ui\**\*" />
     </ItemGroup>
-
-
 
     <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>
 
