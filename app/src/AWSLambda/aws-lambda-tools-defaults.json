@@ -1,24 +1,23 @@
-
 {
-    "Information" : [
-        "Este archivo se usa para definir parámetros por defecto para dotnet lambda comandos"
-    ],
-    "profile"     : "default",
-    "region"      : "us-east-1",
-    "configuration" : "Release",
-    "function-runtime" : "dotnet8",
-    "function-handler" : "AWSLambda::AWSLambda.Function::FunctionHandler",
-    "framework"        : "net8.0",
-    "function-memory-size" : 256,
-    "function-timeout"     : 30,
-    "function-name"        : "order_function",
-    "package-type"         : "Zip",
-    "function-description" : "Funcion para el dominio de Orders del grupo 3",
-    "function-role"        : "arn:aws:iam::654654589924:role/service-role/lamb_gamboa-role-w0fpkkqf",
-    "function-architecture" : "x86_64",
-    "function-subnets"      : "",
-    "function-security-groups" : "",
-    "tracing-mode"             : "PassThrough",
-    "environment-variables"    : "",
-    "image-tag"                : ""
+  "Information": [
+    "Este archivo se usa para definir parámetros por defecto para dotnet lambda comandos"
+  ],
+  "profile": "default",
+  "region": "us-east-1",
+  "configuration": "Release",
+  "function-runtime": "dotnet8",
+  "function-handler": "AWSLambda::AWSLambda.Function::FunctionHandler",
+  "framework": "net8.0",
+  "function-memory-size": 256,
+  "function-timeout": 30,
+  "function-name": "order_function",
+  "package-type": "Zip",
+  "function-description": "Funcion para el dominio de Orders del grupo 3",
+  "function-role": "arn:aws:iam::654654589924:role/service-role/lamb_gamboa-role-w0fpkkqf",
+  "function-architecture": "x86_64",
+  "function-subnets": "",
+  "function-security-groups": "",
+  "tracing-mode": "PassThrough",
+  "environment-variables": "",
+  "image-tag": ""
 }
