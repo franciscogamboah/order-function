@@ -21,8 +21,6 @@ Parameters:
 Resources:
   OrderFunction:
     Type: AWS::Lambda::Function
-    DependsOn:
-      - LambdaLogGroup
     Properties:
       FunctionName: order_function
       Handler: AWSLambda::Function::FunctionHandler
@@ -165,7 +163,6 @@ Resources:
     Properties:
       LogGroupName: !Sub /aws/lambda/${OrderFunction}
       RetentionInDays: 14
-
 
 Outputs:
   LambdaFunctionName:
