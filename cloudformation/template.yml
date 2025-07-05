@@ -153,12 +153,19 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
+  UiResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApiId
+      ParentId: !Ref OrderResource
+      PathPart: ui
+
   UiProxyResource:
     Type: AWS::ApiGateway::Resource
     Properties:
-      ParentId: !Ref UiResourceId
-      PathPart: "{proxy+}"
       RestApiId: !Ref RestApiId
+      ParentId: !Ref UiResource
+      PathPart: "{proxy+}"
 
   GetUiProxyMethod:
     Type: AWS::ApiGateway::Method
