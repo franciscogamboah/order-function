@@ -21,96 +21,90 @@ public class Function
 {
     private readonly IDynamoDbService _db = new DynamoDbService(new AmazonDynamoDBClient());
 
-    //[Logging(LogEvent = true)] // Esto loggea automáticamente el evento recibido
     [Logging(LogEvent = true)]
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
         Logger.LogInformation("Inicio de la función");
 
-        if (request.Path?.ToLower().Contains("/order/swagger") == true && request.HttpMethod == "GET")
+        try
         {
-            var swaggerJson = await LoadSwaggerJson();
-            return new APIGatewayProxyResponse
+            // 1. Manejo de Swagger JSON
+            if (request.Path?.ToLower().EndsWith("/swagger") == true && request.HttpMethod == "GET")
             {
-                StatusCode = 200,
-                Body = swaggerJson,
-                Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
-            };
-        }
-
-        if (request.Path?.ToLower().StartsWith("/api/order/ui") == true)
-        {
-            var filePath = request.Path.ToLower().Replace("/api/order/ui", "").TrimStart('/');
-            var fileName = string.IsNullOrEmpty(filePath) ? "index.html" : filePath;
-
-            var resourceName = Assembly.GetExecutingAssembly()
-                .GetManifestResourceNames()
-                .FirstOrDefault(r => r.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
-
-            if (resourceName == null)
-            {
+                var swaggerJson = await LoadSwaggerJson();
                 return new APIGatewayProxyResponse
                 {
-                    StatusCode = 404,
-                    Body = "Archivo no encontrado",
-                    Headers = new Dictionary<string, string> { { "Content-Type", "text/plain" } }
+                    StatusCode = 200,
+                    Body = swaggerJson,
+                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
                 };
             }
 
-            using var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)!;
-            using var reader = new StreamReader(stream);
-            var content = await reader.ReadToEndAsync();
+            // 2. Manejo de Swagger UI (index.html + archivos estáticos)
+            if (request.Path?.ToLower().Contains("/ui") == true && request.HttpMethod == "GET")
+            {
+                var html = await LoadSwaggerUiHtml();
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 200,
+                    Body = html,
+                    Headers = new Dictionary<string, string> { { "Content-Type", "text/html" } }
+                };
+            }
 
-            var contentType = GetContentType(fileName);
+            // 3. Validar que el cuerpo exista si se requiere
+            if (request.HttpMethod != "GET" && string.IsNullOrWhiteSpace(request.Body))
+            {
+                Logger.LogError("El body está vacío en una solicitud que lo requiere");
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 400,
+                    Body = "Bad Request: Body requerido"
+                };
+            }
+
+            OrderRequest order = null!;
+            if (!string.IsNullOrWhiteSpace(request.Body))
+            {
+                order = JsonSerializer.Deserialize<OrderRequest>(request.Body)
+                    ?? throw new Exception("Error al deserializar el cuerpo.");
+            }
+
+            OrderResponse result;
+
+            switch (request.HttpMethod)
+            {
+                case "GET":
+                    result = await new GetOrderByIdQuery(_db).Execute(order.UserId, order.OrderId);
+                    break;
+                case "POST":
+                    result = await new CreateOrderCommand(_db).Execute(order);
+                    break;
+                case "PUT":
+                    result = await new UpdateOrderCommand(_db).Execute(order);
+                    break;
+                case "DELETE":
+                    result = await new DeleteOrderCommand(_db).Execute(order.UserId, order.OrderId);
+                    break;
+                default:
+                    result = new OrderResponse { httpStatusCode = 405, detail = "Method Not Allowed" };
+                    break;
+            }
+
+            Logger.LogInformation("Fin de la función");
+            return Response(result);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error interno en la función");
             return new APIGatewayProxyResponse
             {
-                StatusCode = 200,
-                Body = content,
-                Headers = new Dictionary<string, string> { { "Content-Type", contentType } }
+                StatusCode = 500,
+                Body = "Internal Server Error"
             };
         }
-
-        if (string.IsNullOrEmpty(request.Body))
-        {
-            Logger.LogError("Request.Body is null or empty. Cannot deserialize.");
-            return new APIGatewayProxyResponse
-            {
-                StatusCode = 400,
-                Body = "Invalid request body"
-            };
-        }
-
-        var order = JsonSerializer.Deserialize<OrderRequest>(request.Body);
-        var userId = order!.UserId;
-        var orderId = order.OrderId;
-
-        OrderResponse result;
-
-        switch (request.HttpMethod)
-        {
-            case "GET":
-                result = await new GetOrderByIdQuery(_db).Execute(userId, orderId);
-                break;
-            case "POST":
-                result = await new CreateOrderCommand(_db).Execute(order);
-                break;
-            case "PUT":
-                result = await new UpdateOrderCommand(_db).Execute(order);
-                break;
-            case "DELETE":
-                result = await new DeleteOrderCommand(_db).Execute(userId, orderId);
-                break;
-            default:
-                result = new OrderResponse { httpStatusCode = 405, detail = "Method Not Allowed" };
-                break;
-        }
-
-        var response = Response(result);
-
-        Logger.LogInformation("Fin de la función");
-
-        return response;
     }
+
 
     private APIGatewayProxyResponse Response(OrderResponse response)
     {
