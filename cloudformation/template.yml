@@ -27,7 +27,7 @@ Resources:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: order_function
-      Handler: AWSLambda::Function::FunctionHandler
+      Handler: AWSLambda::AWSLambda.Function::FunctionHandler
       Runtime: dotnet8
       Architectures: [x86_64]
       Timeout: 30
