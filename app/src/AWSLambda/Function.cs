@@ -139,6 +139,14 @@ public class Function
         var resourceName = assembly.GetManifestResourceNames()
             .FirstOrDefault(name => name.EndsWith("index.html")); // Puede cambiar según el archivo principal
 
+        var resources = typeof(Function).Assembly.GetManifestResourceNames();
+        Logger.LogInformation("Recursos embebidos:");
+        foreach (var r in resources)
+        {
+            Logger.LogInformation(r);
+        }
+
+
         if (resourceName == null) return "<h1>No se encontró Swagger UI</h1>";
 
         using var stream = assembly.GetManifestResourceStream(resourceName);

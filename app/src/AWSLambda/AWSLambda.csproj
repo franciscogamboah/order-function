@@ -41,11 +41,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="docs\swagger.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="docs\swagger-ui\**\*" />
+    <EmbeddedResource Include="docs/swagger.json" />
+    <EmbeddedResource Include="docs/swagger-ui/**/*" />
   </ItemGroup>
 
 	<PropertyGroup>
