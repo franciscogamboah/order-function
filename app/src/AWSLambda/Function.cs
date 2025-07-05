@@ -189,5 +189,4 @@ public class Function
         _ => "application/octet-stream"
     };
 
-
 }
