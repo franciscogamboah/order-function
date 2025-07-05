@@ -18,17 +18,21 @@ Parameters:
     Type: String
     Description: ID del recurso raíz / en el API Gateway
 
+  LambdaExecutionRole:
+    Type: String
+    Description: ARN del rol IAM existente que usará la función Lambda
+
 Resources:
   OrderFunction:
     Type: AWS::Lambda::Function
     Properties:
       FunctionName: order_function
-      Handler: AWSLambda::AWSLambda.Function::FunctionHandler
+      Handler: AWSLambda::Function::FunctionHandler
       Runtime: dotnet8
       Architectures: [x86_64]
       Timeout: 30
       MemorySize: 256
-      Role: arn:aws:iam::654654589924:role/service-role/lamb_gamboa-role-w0fpkkqf
+      Role: !Ref LambdaExecutionRole
       Code:
         S3Bucket: order-function-deploy-654654589924-us-east-1
         S3Key: !Ref LambdaS3Key
@@ -157,29 +161,6 @@ Resources:
     Properties:
       RestApiId: !Ref RestApiId
       StageName: dev
-
-  LambdaLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${OrderFunction}
-      RetentionInDays: 14
-
-  OrderFunctionPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: OrderFunctionDynamoPolicy
-      Roles:
-        - lamb_gamboa-role-w0fpkkqf
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - dynamodb:GetItem
-              - dynamodb:PutItem
-              - dynamodb:UpdateItem
-              - dynamodb:DeleteItem
-            Resource: arn:aws:dynamodb:us-east-1:654654589924:table/orders
 
 Outputs:
   LambdaFunctionName:
