@@ -41,14 +41,37 @@ public class Function
             };
         }
 
-        if (request.Path?.ToLower().Contains("/order/ui") == true && request.HttpMethod == "GET")
+        if (request.Path?.ToLower().Contains("/swagger/ui") == true && request.HttpMethod == "GET")
         {
-            var html = await LoadSwaggerUiHtml();
+            var content = await LoadEmbeddedStaticFile(request.Path!);
+
+            if (content == null)
+            {
+                return new APIGatewayProxyResponse
+                {
+                    StatusCode = 404,
+                    Body = "<h1>Archivo no encontrado</h1>",
+                    Headers = new Dictionary<string, string> { { "Content-Type", "text/html" } }
+                };
+            }
+
+            // Detecta tipo de contenido según extensión
+            var extension = Path.GetExtension(request.Path!).ToLowerInvariant();
+            var contentType = extension switch
+            {
+                ".html" => "text/html",
+                ".css" => "text/css",
+                ".js" => "application/javascript",
+                ".png" => "image/png",
+                ".json" => "application/json",
+                _ => "text/plain"
+            };
+
             return new APIGatewayProxyResponse
             {
                 StatusCode = 200,
-                Body = html,
-                Headers = new Dictionary<string, string> { { "Content-Type", "text/html" } }
+                Body = content,
+                Headers = new Dictionary<string, string> { { "Content-Type", contentType } }
             };
         }
 
@@ -136,5 +159,29 @@ public class Function
         // Puedes inyectar aquí tu endpoint JSON
         return html.Replace("https://petstore.swagger.io/v2/swagger.json", "/api/order/swagger");
     }
+
+    private async Task<string> LoadEmbeddedStaticFile(string resourcePath)
+    {
+        var assembly = typeof(Function).Assembly;
+
+        // Normaliza el path recibido, por ejemplo:
+        // "/api/order/ui/swagger-ui.css" -> "swagger-ui.css"
+        var fileName = Path.GetFileName(resourcePath);
+
+        // Busca el recurso que termina con ese nombre
+        var resourceName = assembly.GetManifestResourceNames()
+            .FirstOrDefault(name => name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
+
+        if (resourceName == null)
+        {
+            Logger.LogWarning("Archivo embebido no encontrado: {FileName}", fileName);
+            return null!;
+        }
+
+        using var stream = assembly.GetManifestResourceStream(resourceName);
+        using var reader = new StreamReader(stream!);
+        return await reader.ReadToEndAsync();
+    }
+
 
 }

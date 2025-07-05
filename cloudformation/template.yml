@@ -153,6 +153,28 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
+  UiProxyResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref UiResourceId
+      PathPart: "{proxy+}"
+      RestApiId: !Ref RestApiId
+
+  GetUiProxyMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: GET
+      AuthorizationType: NONE
+      ResourceId: !Ref UiProxyResource
+      RestApiId: !Ref RestApiId
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${Region}:lambda:path/2015-03-31/functions/${LambdaArn}/invocations
+          - Region: !Ref AWS::Region
+            LambdaArn: !GetAtt OrderFunction.Arn
+
   DevDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
