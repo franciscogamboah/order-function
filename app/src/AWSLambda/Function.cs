@@ -1,6 +1,7 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
+using Amazon.Runtime.Internal;
 using Application.Commands.Create;
 using Application.Commands.Delete;
 using Application.Commands.Update;
@@ -29,7 +30,7 @@ public class Function
         // Removed the line causing the error as Logger does not have a GetLogger method.
         // The Logger class already provides static methods for logging, so no instance is needed.
 
-        if (request.Path?.ToLower().EndsWith("/swagger") == true && request.HttpMethod == "GET")
+        if (request.Path?.ToLower().Contains("/order/swagger") == true && request.HttpMethod == "GET")
         {
             var swaggerJson = await LoadSwaggerJson();
             return new APIGatewayProxyResponse
@@ -40,7 +41,7 @@ public class Function
             };
         }
 
-        if (request.Path?.ToLower().EndsWith("/swagger/ui") == true && request.HttpMethod == "GET")
+        if (request.Path?.ToLower().Contains("/order/ui") == true && request.HttpMethod == "GET")
         {
             var html = await LoadSwaggerUiHtml();
             return new APIGatewayProxyResponse
@@ -48,6 +49,16 @@ public class Function
                 StatusCode = 200,
                 Body = html,
                 Headers = new Dictionary<string, string> { { "Content-Type", "text/html" } }
+            };
+        }
+
+        if (string.IsNullOrEmpty(request.Body))
+        {
+            Logger.LogError("Request.Body is null or empty. Cannot deserialize.");
+            return new APIGatewayProxyResponse
+            {
+                StatusCode = 400,
+                Body = "Invalid request body"
             };
         }
 
