@@ -1,6 +1,8 @@
 ﻿using Amazon.DynamoDBv2.Model;
 using Application.Common.Infrastructure;
 using Application.Common.Response;
+using AWS.Lambda.Powertools.Logging;
+using System.Net;
 
 namespace Application.Commands.Delete;
 public class DeleteOrderCommand
@@ -16,8 +18,31 @@ public class DeleteOrderCommand
     #region Métodos
     public async Task<OrderResponse> Execute(string userId, string orderId)
     {
-        var response = await _db.DeleteOrderAsync(userId, orderId);
-        return MappingResponse(response, orderId);
+        try
+        {
+            var response = await _db.DeleteOrderAsync(userId, orderId);
+
+            var orderResponse = MappingResponse(response, orderId);
+
+            Logger.LogInformation("Se realizó la actualización satisfactoriamente {@orderResponse}", orderResponse);
+
+            return orderResponse;
+        }
+        catch (Exception ex)
+        {
+            var request = new
+            {
+                UserId = userId,
+                OrderId = orderId
+            };
+            Logger.LogError(ex, "Error al eliminar el registro para la orden {@request}", request);
+            return new OrderResponse
+            {
+                order = orderId,
+                detail = "Error interno del servidor",
+                httpStatusCode = (int)HttpStatusCode.InternalServerError
+            };
+        }
     }
 
     private OrderResponse MappingResponse(DeleteItemResponse responseDB, string orderId)

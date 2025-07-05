@@ -19,11 +19,15 @@ public class Function
 {
     private readonly IDynamoDbService _db = new DynamoDbService(new AmazonDynamoDBClient());
 
-    [Logging(LogEvent = true)] // Esto loggea automáticamente el evento recibido
-
+    //[Logging(LogEvent = true)] // Esto loggea automáticamente el evento recibido
+    [Logging(LogEvent = true)]
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
         Logger.LogInformation("Inicio de la función");
+        //var logger = Logger.GetLogger(); // obtiene instancia de logger actual
+
+        // Removed the line causing the error as Logger does not have a GetLogger method.
+        // The Logger class already provides static methods for logging, so no instance is needed.
 
         if (request.Path?.ToLower().EndsWith("/swagger") == true && request.HttpMethod == "GET")
         {
@@ -72,7 +76,11 @@ public class Function
                 break;
         }
 
-        return Response(result);
+        var response = Response(result);
+
+        Logger.LogInformation("Fin de la función");
+
+        return response;
     }
 
     private APIGatewayProxyResponse Response(OrderResponse response)

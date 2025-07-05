@@ -1,8 +1,10 @@
 ﻿using Amazon.DynamoDBv2.Model;
+using Amazon.Runtime.Internal;
 using Application.Common.Helpers;
 using Application.Common.Infrastructure;
 using Application.Common.Interfaces;
 using Application.Common.Response;
+using AWS.Lambda.Powertools.Logging;
 using Domain.Entities;
 using System.Net;
 using System.Text.Json;
@@ -13,6 +15,7 @@ public class GetOrderByIdQuery
     #region Declaraciones y Constructor
     private readonly IDynamoDbService _db;
     private readonly IHelpers _helpers;
+
     public GetOrderByIdQuery(IDynamoDbService db)
     {
         _db = db;
@@ -33,16 +36,32 @@ public class GetOrderByIdQuery
                 {
                     order = orderId,
                     detail = $"No se encontró el recurso con el Id {orderId}",
-                    httpStatusCode = (int)HttpStatusCode.NotFound,
-                    data = null,
+                    httpStatusCode = (int)HttpStatusCode.NotFound
                 };
-            }
+            }           
 
-            return MappingResponse(response!);
+            var orderResponse = MappingResponse(response);
+
+            Logger.LogInformation("Se realizó la consulta satisfactoriamente: {@orderResponse}", orderResponse);
+
+            return orderResponse;
         }
         catch (Exception ex)
         {
-            throw new ApplicationException("Error al obtener la orden", ex);
+            var request = new
+            {
+                UserId = userId,
+                OrderId = orderId
+            };
+
+            Logger.LogError(ex, "Error al obtener la orden {@request}", request);
+
+            return new OrderResponse()
+            {
+                order = orderId,
+                detail = "Error interno del servidor",
+                httpStatusCode = (int)HttpStatusCode.InternalServerError
+            };
         }
     }
     private OrderResponse MappingResponse(GetItemResponse responseDB)

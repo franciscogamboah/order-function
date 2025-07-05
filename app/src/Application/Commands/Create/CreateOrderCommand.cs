@@ -4,6 +4,7 @@ using Application.Common.Infrastructure;
 using Application.Common.Request;
 using Application.Common.Response;
 using Domain.Entities;
+using AWS.Lambda.Powertools.Logging;
 
 namespace Application.Commands.Create;
 public class CreateOrderCommand
@@ -22,6 +23,7 @@ public class CreateOrderCommand
         try
         {
             var newOrder = Guid.NewGuid().ToString();
+
             var order = new Order()
             {
                 Address = request.Address,
@@ -40,16 +42,20 @@ public class CreateOrderCommand
                 TrackingStatus = request.TrackingStatus,
                 UserId = request.UserId
             };
-            var response = await _db.SaveOrderAsync(order);
-            return MappingResponse(response, newOrder);
 
+            var response = await _db.SaveOrderAsync(order);
+
+            var orderResponse = MappingResponse(response, newOrder);
+
+            Logger.LogInformation("Se realizó el registro satisfactoriamente {@orderResponse}", orderResponse);
+
+            return orderResponse;
         }
         catch (Exception ex)
-        {        
-            // Loggea el error con tu logger preferido
-            //_logger.LogError(ex, "Error inesperado al crear orden");
-            // Devuelve un 500 controlado
-            return new OrderResponse()
+        {
+            Logger.LogError(ex, "Error al insertar el registro para la orden {@request}", request);
+
+            return new OrderResponse
             {
                 order = string.Empty,
                 detail = "Error interno del servidor",
