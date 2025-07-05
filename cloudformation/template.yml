@@ -133,19 +133,11 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
-  # Recurso /api/order/ui
-  SwaggerUIResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref RestApiId
-      ParentId: !Ref OrderResource
-      PathPart: ui
-
   GetSwaggerUIMethod:
     Type: AWS::ApiGateway::Method
     Properties:
       RestApiId: !Ref RestApiId
-      ResourceId: !Ref SwaggerUIResource
+      ResourceId: !Ref UiResource
       HttpMethod: GET
       AuthorizationType: NONE
       Integration:
