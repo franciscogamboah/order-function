@@ -26,7 +26,13 @@ public class Function
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
         Logger.LogInformation("Inicio de la función");
-
+        var corsHeaders = new Dictionary<string, string>
+        {
+            { "Content-Type", "application/json" },
+            { "Access-Control-Allow-Origin", "*" },
+            { "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS" },
+            { "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token" }
+        };
         try
         {
             if (!request.Headers.TryGetValue("Authorization", out var authHeader) || string.IsNullOrEmpty(authHeader))
@@ -34,7 +40,8 @@ public class Function
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = 401,
-                    Body = "Token no proporcionado"
+                    Body = "Token no proporcionado",
+                    Headers = corsHeaders
                 };
             }
 
@@ -45,12 +52,13 @@ public class Function
             var tokenIsValid = await new ValidateJWTQuery(_validateTokenRepository).Execute(token);
 
             if(!tokenIsValid)
-                {
+            {
                 Logger.LogWarning("Token inválido: {token}", token);
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = 401,
-                    Body = "Token inválido"
+                    Body = "Token inválido",
+                    Headers = corsHeaders
                 };
             }
 
@@ -85,7 +93,7 @@ public class Function
             }
 
             Logger.LogInformation("Fin de la función");
-            return Response(result);
+            return Response(result, corsHeaders);
         }
         catch (Exception ex)
         {
@@ -93,12 +101,13 @@ public class Function
             return new APIGatewayProxyResponse
             {
                 StatusCode = 500,
-                Body = "Internal Server Error"
+                Body = "Internal Server Error",
+                Headers = corsHeaders
             };
         }
     }
 
-    private APIGatewayProxyResponse Response(OrderResponse response)
+    private APIGatewayProxyResponse Response(OrderResponse response, Dictionary<string, string> corsHeaders)
     {
         return new()
         {
@@ -108,7 +117,7 @@ public class Function
                 response.detail,
                 data = string.IsNullOrEmpty(response.data) ? null : JsonSerializer.Deserialize<object>(response.data)
             }),
-            Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
+            Headers = corsHeaders
         };
     }
 }
