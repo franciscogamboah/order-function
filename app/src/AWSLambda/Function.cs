@@ -8,6 +8,7 @@ using Application.Common.Infrastructure;
 using Application.Common.Request;
 using Application.Common.Response;
 using Application.Queries;
+using Application.Queries.ValidateJWT;
 using AWS.Lambda.Powertools.Logging;
 using Infrastructure.Repositories;
 using System.Text.Json;
@@ -28,7 +29,6 @@ public class Function
 
         try
         {
-            // 1. Obtener el token del header
             if (!request.Headers.TryGetValue("Authorization", out var authHeader) || string.IsNullOrEmpty(authHeader))
             {
                 return new APIGatewayProxyResponse
@@ -38,12 +38,11 @@ public class Function
                 };
             }
 
-            // El formato esperado es "Bearer <token>"
             var token = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
                 ? authHeader.Substring("Bearer ".Length).Trim()
                 : authHeader.Trim();
 
-            var tokenIsValid = await _validateTokenRepository.ValidateTokenWithRemoteAsync(token);
+            var tokenIsValid = await new ValidateJWTQuery(_validateTokenRepository).Execute(token);
 
             if(!tokenIsValid)
                 {

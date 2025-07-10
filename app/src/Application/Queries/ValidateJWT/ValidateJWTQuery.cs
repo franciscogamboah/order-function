@@ -3,7 +3,6 @@ using AWS.Lambda.Powertools.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 
-
 namespace Application.Queries.ValidateJWT;
 public class ValidateJWTQuery
 {
@@ -28,10 +27,8 @@ public class ValidateJWTQuery
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(key)),
-                ValidateIssuer = false, // Cambia a true y pon tu issuer si quieres
-                ValidateAudience = false, // Cambia a true si tu JWT tiene audience
-                                          //ValidIssuer = "tu-issuer",
-                                          //ValidAudience = "tu-audience",
+                ValidateIssuer = false,
+                ValidateAudience = false,
                 ClockSkew = TimeSpan.Zero
             };
 
