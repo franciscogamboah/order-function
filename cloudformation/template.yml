@@ -10,27 +10,20 @@ Parameters:
     Type: String
     Description: ID del API Gateway REST ya creado
 
-  RootResourceId:
+  ApiResourceId:
     Type: String
-    Description: ID del recurso raíz / en el API Gateway
+    Description: ID del recurso /api ya creado en API Gateway
 
   LambdaExecutionRole:
     Type: String
     Description: ARN del rol IAM existente que usará la función Lambda
 
 Resources:
-  ApiResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref RestApiId
-      ParentId: !Ref RootResourceId
-      PathPart: api
-
   OrderResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref RestApiId
-      ParentId: !Ref ApiResource
+      ParentId: !Ref ApiResourceId
       PathPart: order
 
   OrderFunction:
