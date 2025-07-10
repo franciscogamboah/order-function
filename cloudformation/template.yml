@@ -19,11 +19,18 @@ Parameters:
     Description: ARN del rol IAM existente que usará la función Lambda
 
 Resources:
-  OrderResource:
+  ApiResource:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref RestApiId
       ParentId: !Ref RootResourceId
+      PathPart: api
+
+  OrderResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApiId
+      ParentId: !Ref ApiResource
       PathPart: order
 
   OrderFunction:
