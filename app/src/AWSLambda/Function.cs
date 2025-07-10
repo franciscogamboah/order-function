@@ -26,23 +26,25 @@ public class Function
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
     {
         Logger.LogInformation("Inicio de la función");
-        var corsHeaders = new Dictionary<string, string>
+
+        if (request.HttpMethod == "OPTIONS")
         {
-            { "Content-Type", "application/json" },
-            { "Access-Control-Allow-Origin", "*" },
-            { "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS" },
-            { "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token" }
-        };
+            return CreateCorsResponse(200, string.Empty);
+        }
+
+        //var corsHeaders = new Dictionary<string, string>
+        //{
+        //    { "Content-Type", "application/json" },
+        //    { "Access-Control-Allow-Origin", "*" },
+        //    { "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS" },
+        //    { "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token" }
+        //};
+
         try
         {
             if (!request.Headers.TryGetValue("Authorization", out var authHeader) || string.IsNullOrEmpty(authHeader))
             {
-                return new APIGatewayProxyResponse
-                {
-                    StatusCode = 401,
-                    Body = "Token no proporcionado",
-                    Headers = corsHeaders
-                };
+                return CreateCorsResponse(401, "Token no proporcionado");
             }
 
             var token = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
@@ -54,12 +56,7 @@ public class Function
             if(!tokenIsValid)
             {
                 Logger.LogWarning("Token inválido: {token}", token);
-                return new APIGatewayProxyResponse
-                {
-                    StatusCode = 401,
-                    Body = "Token inválido",
-                    Headers = corsHeaders
-                };
+                return CreateCorsResponse(401, "Token inválido");
             }
 
             Logger.LogInformation("Token recibido: {token}", token);
@@ -93,17 +90,12 @@ public class Function
             }
 
             Logger.LogInformation("Fin de la función");
-            return Response(result, corsHeaders);
+            return CreateCorsResponse(result.httpStatusCode, result.data!);
         }
         catch (Exception ex)
         {
             Logger.LogError(ex, "Error interno en la función");
-            return new APIGatewayProxyResponse
-            {
-                StatusCode = 500,
-                Body = "Internal Server Error",
-                Headers = corsHeaders
-            };
+            return CreateCorsResponse(500, "Internal Server Error");
         }
     }
 
@@ -120,4 +112,20 @@ public class Function
             Headers = corsHeaders
         };
     }
+
+    private APIGatewayProxyResponse CreateCorsResponse(int statusCode, string body)
+    {
+        return new APIGatewayProxyResponse
+        {
+            StatusCode = statusCode,
+            Body = body,
+            Headers = new Dictionary<string, string>
+            {
+                { "Access-Control-Allow-Origin", "*" },
+                { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS" },
+                { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+            }
+        };
+    }
+
 }
