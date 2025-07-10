@@ -2,6 +2,7 @@
 using Application.Common.Helpers;
 using Application.Common.Infrastructure;
 using Application.Common.Interfaces;
+using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,5 +20,6 @@ public static class DependencyInjection
         services.AddAWSService<IAmazonDynamoDB>();
         services.AddTransient<IHelpers, Helpers>();
         services.AddTransient<IDynamoDbService, DynamoDbService>();
+        services.AddTransient<IValidateTokenRepository, ValidateTokenRepository>();
     }
 }

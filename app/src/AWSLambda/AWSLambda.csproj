@@ -40,11 +40,6 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <EmbeddedResource Include="docs/swagger.json" />
-    <EmbeddedResource Include="docs/swagger-ui/**/*" />
-  </ItemGroup>
-
 	<PropertyGroup>
 		<OutputType>Library</OutputType>
 	</PropertyGroup>

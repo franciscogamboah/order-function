@@ -1,7 +1,6 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.Lambda.APIGatewayEvents;
 using Amazon.Lambda.Core;
-using Amazon.Runtime.Internal;
 using Application.Commands.Create;
 using Application.Commands.Delete;
 using Application.Commands.Update;
@@ -10,7 +9,7 @@ using Application.Common.Request;
 using Application.Common.Response;
 using Application.Queries;
 using AWS.Lambda.Powertools.Logging;
-using System.Reflection;
+using Infrastructure.Repositories;
 using System.Text.Json;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -20,6 +19,7 @@ namespace AWSLambda;
 public class Function
 {
     private readonly IDynamoDbService _db = new DynamoDbService(new AmazonDynamoDBClient());
+    private readonly IValidateTokenRepository _validateTokenRepository = new ValidateTokenRepository();
 
     [Logging(LogEvent = true)]
     public async Task<APIGatewayProxyResponse> FunctionHandler(APIGatewayProxyRequest request, ILambdaContext context)
@@ -28,40 +28,34 @@ public class Function
 
         try
         {
-            // 1. Manejo de Swagger JSON
-            if (request.Path?.ToLower().EndsWith("/swagger") == true && request.HttpMethod == "GET")
+            // 1. Obtener el token del header
+            if (!request.Headers.TryGetValue("Authorization", out var authHeader) || string.IsNullOrEmpty(authHeader))
             {
-                var swaggerJson = await LoadSwaggerJson();
                 return new APIGatewayProxyResponse
                 {
-                    StatusCode = 200,
-                    Body = swaggerJson,
-                    Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
+                    StatusCode = 401,
+                    Body = "Token no proporcionado"
                 };
             }
 
-            // 2. Manejo de Swagger UI (index.html + archivos estáticos)
-            if (request.Path?.ToLower().Contains("/ui") == true && request.HttpMethod == "GET")
-            {
-                var html = await LoadSwaggerUiHtml();
+            // El formato esperado es "Bearer <token>"
+            var token = authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                ? authHeader.Substring("Bearer ".Length).Trim()
+                : authHeader.Trim();
+
+            var tokenIsValid = await _validateTokenRepository.ValidateTokenWithRemoteAsync(token);
+
+            if(!tokenIsValid)
+                {
+                Logger.LogWarning("Token inválido: {token}", token);
                 return new APIGatewayProxyResponse
                 {
-                    StatusCode = 200,
-                    Body = html,
-                    Headers = new Dictionary<string, string> { { "Content-Type", "text/html" } }
+                    StatusCode = 401,
+                    Body = "Token inválido"
                 };
             }
 
-            // 3. Validar que el cuerpo exista si se requiere
-            if (request.HttpMethod != "GET" && string.IsNullOrWhiteSpace(request.Body))
-            {
-                Logger.LogError("El body está vacío en una solicitud que lo requiere");
-                return new APIGatewayProxyResponse
-                {
-                    StatusCode = 400,
-                    Body = "Bad Request: Body requerido"
-                };
-            }
+            Logger.LogInformation("Token recibido: {token}", token);
 
             OrderRequest order = null!;
             if (!string.IsNullOrWhiteSpace(request.Body))
@@ -105,7 +99,6 @@ public class Function
         }
     }
 
-
     private APIGatewayProxyResponse Response(OrderResponse response)
     {
         return new()
@@ -119,76 +112,4 @@ public class Function
             Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
         };
     }
-
-    private async Task<string> LoadSwaggerJson()
-    {
-        var assembly = typeof(Function).Assembly;
-        var resourceName = assembly.GetManifestResourceNames()
-            .FirstOrDefault(name => name.EndsWith("swagger.json"));
-
-        if (resourceName == null) return "{}";
-
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        using var reader = new StreamReader(stream!);
-        return await reader.ReadToEndAsync();
-    }
-
-    private async Task<string> LoadSwaggerUiHtml()
-    {
-        var assembly = typeof(Function).Assembly;
-        var resourceName = assembly.GetManifestResourceNames()
-            .FirstOrDefault(name => name.EndsWith("index.html")); // Puede cambiar según el archivo principal
-
-        var resources = typeof(Function).Assembly.GetManifestResourceNames();
-        Logger.LogInformation("Recursos embebidos:");
-        foreach (var r in resources)
-        {
-            Logger.LogInformation(r);
-        }
-
-
-        if (resourceName == null) return "<h1>No se encontró Swagger UI</h1>";
-
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        using var reader = new StreamReader(stream!);
-        var html = await reader.ReadToEndAsync();
-
-        // Puedes inyectar aquí tu endpoint JSON
-        return html.Replace("https://petstore.swagger.io/v2/swagger.json", "/api/order/swagger");
-    }
-
-    private async Task<string> LoadEmbeddedStaticFile(string resourcePath)
-    {
-        var assembly = typeof(Function).Assembly;
-
-        // Normaliza el path recibido, por ejemplo:
-        // "/api/order/ui/swagger-ui.css" -> "swagger-ui.css"
-        var fileName = Path.GetFileName(resourcePath);
-
-        // Busca el recurso que termina con ese nombre
-        var resourceName = assembly.GetManifestResourceNames()
-            .FirstOrDefault(name => name.EndsWith(fileName, StringComparison.OrdinalIgnoreCase));
-
-        if (resourceName == null)
-        {
-            Logger.LogWarning("Archivo embebido no encontrado: {FileName}", fileName);
-            return null!;
-        }
-
-        using var stream = assembly.GetManifestResourceStream(resourceName);
-        using var reader = new StreamReader(stream!);
-        return await reader.ReadToEndAsync();
-    }
-
-    private string GetContentType(string fileName) =>
-    Path.GetExtension(fileName) switch
-    {
-        ".html" => "text/html",
-        ".js" => "application/javascript",
-        ".css" => "text/css",
-        ".json" => "application/json",
-        ".png" => "image/png",
-        _ => "application/octet-stream"
-    };
-
 }

@@ -19,7 +19,6 @@ Parameters:
     Description: ARN del rol IAM existente que usará la función Lambda
 
 Resources:
-  # ✅ Crea /api/order automáticamente
   OrderResource:
     Type: AWS::ApiGateway::Resource
     Properties:
@@ -53,17 +52,6 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
       SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/api/order
-
-  SwaggerFunctionPermission:
-    Type: AWS::Lambda::Permission
-    DependsOn:
-      - GetSwaggerMethod
-      - GetSwaggerUIMethod
-    Properties:
-      FunctionName: !Ref OrderFunction
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-      SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApiId}/*/api/order/*
 
   GetOrderMethod:
     Type: AWS::ApiGateway::Method
@@ -113,64 +101,6 @@ Resources:
         Type: AWS_PROXY
         Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
 
-  # Recurso /api/order/swagger
-  SwaggerResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref RestApiId
-      ParentId: !Ref OrderResource
-      PathPart: swagger
-
-  GetSwaggerMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApiId
-      ResourceId: !Ref SwaggerResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
-
-  GetSwaggerUIMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApiId
-      ResourceId: !Ref UiResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        IntegrationHttpMethod: POST
-        Type: AWS_PROXY
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
-
-  UiResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref RestApiId
-      ParentId: !Ref OrderResource
-      PathPart: ui
-
-  UiProxyResource:
-    Type: AWS::ApiGateway::Resource
-    Properties:
-      RestApiId: !Ref RestApiId
-      ParentId: !Ref UiResource
-      PathPart: "{proxy+}"
-
-  GetUiProxyMethod:
-    Type: AWS::ApiGateway::Method
-    Properties:
-      RestApiId: !Ref RestApiId
-      ResourceId: !Ref UiProxyResource
-      HttpMethod: GET
-      AuthorizationType: NONE
-      Integration:
-        Type: AWS_PROXY
-        IntegrationHttpMethod: POST
-        Uri: !Sub arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OrderFunction.Arn}/invocations
-
   DevDeployment:
     Type: AWS::ApiGateway::Deployment
     DependsOn:
@@ -178,8 +108,6 @@ Resources:
       - PostOrderMethod
       - PutOrderMethod
       - DeleteOrderMethod
-      - GetSwaggerMethod
-      - GetSwaggerUIMethod
     Properties:
       RestApiId: !Ref RestApiId
       StageName: dev
