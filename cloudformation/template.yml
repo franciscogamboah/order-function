@@ -10,7 +10,7 @@ Parameters:
     Type: String
     Description: ID del API Gateway REST ya creado
 
-  ApiResourceId:
+  RootResourceId:
     Type: String
     Description: ID del recurso /api ya creado en API Gateway
 
@@ -23,7 +23,7 @@ Resources:
     Type: AWS::ApiGateway::Resource
     Properties:
       RestApiId: !Ref RestApiId
-      ParentId: !Ref ApiResourceId
+      ParentId: !Ref RootResourceId
       PathPart: order
 
   OrderFunction:
