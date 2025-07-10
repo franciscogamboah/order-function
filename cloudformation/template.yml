@@ -134,6 +134,7 @@ Resources:
       - PostOrderMethod
       - PutOrderMethod
       - DeleteOrderMethod
+      - OptionsOrderMethod
     Properties:
       RestApiId: !Ref RestApiId
       StageName: dev
