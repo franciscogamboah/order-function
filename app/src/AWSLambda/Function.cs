@@ -55,6 +55,7 @@ public class Function
 
             string userId = string.Empty;
             string orderId = string.Empty;
+            OrderRequest order = null!;
 
             if (request.HttpMethod == "GET")
             {
@@ -63,12 +64,13 @@ public class Function
                     !request.QueryStringParameters.TryGetValue("orderid", out orderId!))
                     return CreateCorsResponse(400, "Faltan parámetros obligatorios: userid y orderid");
             }
-
-            OrderRequest order = null!;
-            if (!string.IsNullOrWhiteSpace(request.Body))
+            else
             {
-                order = JsonSerializer.Deserialize<OrderRequest>(request.Body)
-                    ?? throw new Exception("Error al deserializar el cuerpo.");
+                if (!string.IsNullOrWhiteSpace(request.Body))
+                {
+                    order = JsonSerializer.Deserialize<OrderRequest>(request.Body)
+                        ?? throw new Exception("Error al deserializar el cuerpo.");
+                }
             }
 
             OrderResponse result;
