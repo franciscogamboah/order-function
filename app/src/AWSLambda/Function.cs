@@ -57,7 +57,7 @@ public class Function
             string orderId = string.Empty;
             OrderRequest? order = null;
 
-            if (request.HttpMethod == "GET")
+            if (request.HttpMethod == "GET" || request.HttpMethod == "DELETE")
             {
                 if (request.QueryStringParameters == null ||
                     !request.QueryStringParameters.TryGetValue("userid", out userId!) ||
@@ -88,7 +88,7 @@ public class Function
                     result = await new UpdateOrderCommand(_db).Execute(order!);
                     break;
                 case "DELETE":
-                    result = await new DeleteOrderCommand(_db).Execute(order!.UserId, order.OrderId);
+                    result = await new DeleteOrderCommand(_db).Execute(userId, orderId);
                     break;
                 default:
                     result = new OrderResponse { Status = 405, Message = "Method Not Allowed" };
