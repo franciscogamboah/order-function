@@ -1,4 +1,7 @@
 {
   "body": "{\"UserId\":\"ab607480-508d-4044-8c30-77d353716b13\",\"Address\":{\"Reference\":\"Casa\",\"Country\":\"VE\",\"Default\":true,\"City\":\"Caracas\",\"Location\":{\"Lat\":19.4326,\"Lon\":-99.1332},\"State\":\"CCS\",\"Type\":\"APARTAMENTO\",\"Line1\":\"VILLAS DEL SOL\",\"Line2\":\"CASA 189\"},\"CreatedAt\":\"2025-06-09T12:00:00Z\",\"DeliveredAt\":null,\"DeliveryRating\":5,\"DeliveryStartedAt\":\"2025-06-15T10:00:00Z\",\"Items\":[{\"SkuId\":\"sku-001\",\"Price\":150.50,\"Quantity\":2},{\"SkuId\":\"sku-002\",\"Price\":299.99,\"Quantity\":1}],\"Notes\":\"Por favor dejar en la puerta.\",\"PaidAt\":\"2025-05-31T11:45:00Z\",\"PaymentMethod\":\"Tarjeta de crédito\",\"Status\":\"En proceso\",\"StoreId\":\"store-987\",\"TotalAmount\":600.99,\"TrackingStatus\":\"En tránsito\"}",
-  "httpMethod": "POST"
+  "httpMethod": "POST",
+  "headers": {
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzAxYjY3YjctZjNkNC00ZGY0LWI0OWUtYzJhZDEyMmExZWQzIiwiZW1haWwiOiJqdWFuLmNhcnJhbnphQGV4YW1wbGUuY29tIiwiaWF0IjoxNzUyMTk4OTU0LCJleHAiOjE3NTIyMDYxNTR9.8vv28yysttRA9xwv07MqEcqFm4mkkIaggomGfSfc_P0"
+  }
 }

@@ -1,7 +1,10 @@
 {
-  "body": "{\"UserId\":\"2cd71ae7-725a-4fa7-9d87-8f5a13413e41\",\"OrderId\":\"ov-0a6eb15f\"}",
   "httpMethod": "GET",
+  "queryStringParameters": {
+    "userid": "e6ceb306-a3d3-4597-9751-936c9ca5d476",
+    "orderid": "ov-16dc90bc"
+  },
   "headers": {
-    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzAxYjY3YjctZjNkNC00ZGY0LWI0OWUtYzJhZDEyMmExZWQzIiwiZW1haWwiOiJqdWFuLmNhcnJhbnphQGV4YW1wbGUuY29tIiwiaWF0IjoxNzUyMTIwOTI5LCJleHAiOjE3NTIxMjgxMjl9.I_JJXxCwRnJt7ZJkxJUYvX6580FwlTT144tvhe5nzOw"
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzAxYjY3YjctZjNkNC00ZGY0LWI0OWUtYzJhZDEyMmExZWQzIiwiZW1haWwiOiJqdWFuLmNhcnJhbnphQGV4YW1wbGUuY29tIiwiaWF0IjoxNzUyMTk4OTU0LCJleHAiOjE3NTIyMDYxNTR9.8vv28yysttRA9xwv07MqEcqFm4mkkIaggomGfSfc_P0"
   }
 }
