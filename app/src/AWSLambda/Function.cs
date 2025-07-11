@@ -55,7 +55,7 @@ public class Function
 
             string userId = string.Empty;
             string orderId = string.Empty;
-            OrderRequest order = null!;
+            OrderRequest? order = null;
 
             if (request.HttpMethod == "GET")
             {
@@ -67,10 +67,11 @@ public class Function
             else
             {
                 if (!string.IsNullOrWhiteSpace(request.Body))
-                {
-                    order = JsonSerializer.Deserialize<OrderRequest>(request.Body)
-                        ?? throw new Exception("Error al deserializar el cuerpo.");
-                }
+                    order = JsonSerializer.Deserialize<OrderRequest>(request.Body);
+
+                if (order == null)
+                    return CreateCorsResponse(400, "El body es requerido y debe tener formato válido");
+
             }
 
             OrderResponse result;
@@ -115,7 +116,7 @@ public class Function
                 { "Access-Control-Allow-Origin", "*" },
                 { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS" },
                 { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
-            }
+            },
         };
     }
 
