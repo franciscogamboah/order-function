@@ -58,26 +58,24 @@ public class CreateOrderCommand
 
             return new OrderResponse
             {
-                order = string.Empty,
-                detail = "Error interno del servidor",
-                httpStatusCode = (int)HttpStatusCode.InternalServerError
+                Status = (int)HttpStatusCode.InternalServerError,
+                Message = "Error interno del servidor"
             };
         }
     }
 
     private OrderResponse MappingResponse(PutItemResponse responseDB, string newOrder)
     {
-        var orderResponse = new CreateOrderResponse()
+        var orderResponse = new
         {
-            OrderId = newOrder
+            OrderId = newOrder,
         };
 
         return new OrderResponse()
         {
-            order = (int)responseDB.HttpStatusCode == 200 ? newOrder : string.Empty,
-            detail = (int)responseDB.HttpStatusCode == 200 ? "El registro se realizó exitosamente" : "Ha ocurrido un error en la inserción",
-            httpStatusCode = (int)responseDB.HttpStatusCode,
-            data = JsonSerializer.Serialize(orderResponse)
+            Status = (int)responseDB.HttpStatusCode,
+            Message = (int)responseDB.HttpStatusCode == 200 ? "El registro se realizó exitosamente" : "Ha ocurrido un error al eliminar el registro",
+            Data = orderResponse
         };
     }
     #endregion

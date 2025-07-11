@@ -1,5 +1,4 @@
 ﻿using Amazon.DynamoDBv2.Model;
-using Amazon.Runtime.Internal;
 using Application.Common.Helpers;
 using Application.Common.Infrastructure;
 using Application.Common.Interfaces;
@@ -31,14 +30,12 @@ public class GetOrderByIdQuery
             var response = await _db.GetOrderAsync(userId, orderId);
 
             if (response is null)
-            {
                 return new OrderResponse()
                 {
-                    order = orderId,
-                    detail = $"No se encontró el recurso con el Id {orderId}",
-                    httpStatusCode = (int)HttpStatusCode.NotFound
+                    Status = (int)HttpStatusCode.NotFound,
+                    Message = $"No se encontró el recurso con el Id {orderId}",
+                    Data = null
                 };
-            }           
 
             var orderResponse = MappingResponse(response);
 
@@ -58,9 +55,9 @@ public class GetOrderByIdQuery
 
             return new OrderResponse()
             {
-                order = orderId,
-                detail = "Error interno del servidor",
-                httpStatusCode = (int)HttpStatusCode.InternalServerError
+                Status = (int)HttpStatusCode.InternalServerError,
+                Message = "Error interno del servidor",
+                Data = null,
             };
         }
     }
@@ -89,10 +86,9 @@ public class GetOrderByIdQuery
 
         return new OrderResponse()
         {
-            order = (int)responseDB.HttpStatusCode == 200 ? order.OrderId : string.Empty,
-            detail = (int)responseDB.HttpStatusCode == 200 ? "Se ha obtenido la información satisfactoriamente" : "Ha ocurrido un error al consultar la información",
-            httpStatusCode = (int)responseDB.HttpStatusCode,
-            data = JsonSerializer.Serialize(order),
+            Status = (int)responseDB.HttpStatusCode,
+            Message = "Se ha obtenido la información satisfactoriamente",            
+            Data = order,
         };
     }
     #endregion

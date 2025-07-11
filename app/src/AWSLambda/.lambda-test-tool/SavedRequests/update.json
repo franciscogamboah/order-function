@@ -1,4 +1,11 @@
 {
   "body": "{\"UserId\":\"user-456\",\"OrderId\":\"a1c66c0e-e349-473f-9b15-dcb31b1e008a\",\"Address\":{\"Reference\":\"Casa\",\"Country\":\"MX\",\"Default\":true,\"City\":\"Ciudad de México\",\"Location\":{\"Lat\":19.4326,\"Lon\":-99.1332},\"State\":\"CDMX\",\"Type\":\"Casa\",\"Line1\":\"Av. Reforma 123\",\"Line2\":\"Depto 101\"},\"CreatedAt\":\"2025-05-31T12:00:00Z\",\"DeliveredAt\":null,\"DeliveryRating\":5,\"DeliveryStartedAt\":\"2025-05-31T13:00:00Z\",\"Items\":[{\"SkuId\":\"sku-001\",\"Price\":150.50,\"Quantity\":2},{\"SkuId\":\"sku-002\",\"Price\":299.99,\"Quantity\":1}],\"Notes\":\"Por favor dejar en el cuarto\",\"PaidAt\":\"2025-05-31T11:45:00Z\",\"PaymentMethod\":\"Tarjeta de crédito\",\"Status\":\"En proceso\",\"StoreId\":\"store-987\",\"TotalAmount\":600.99,\"TrackingStatus\":\"En tránsito\"}",
-  "httpMethod": "PUT"
+  "httpMethod": "PUT",
+  "queryStringParameters": {
+    "userid": "e6ceb306-a3d3-4597-9751-936c9ca5d476",
+    "orderid": "ov-16dc90bc"
+  },
+  "headers": {
+    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNzAxYjY3YjctZjNkNC00ZGY0LWI0OWUtYzJhZDEyMmExZWQzIiwiZW1haWwiOiJqdWFuLmNhcnJhbnphQGV4YW1wbGUuY29tIiwiaWF0IjoxNzUyMTk4OTU0LCJleHAiOjE3NTIyMDYxNTR9.8vv28yysttRA9xwv07MqEcqFm4mkkIaggomGfSfc_P0"
+  }
 }

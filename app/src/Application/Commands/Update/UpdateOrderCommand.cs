@@ -53,21 +53,27 @@ public class UpdateOrderCommand
         catch(Exception ex)
         {
             Logger.LogError(ex, "Error al actualizar el registro {@request}", request);
+
             return new OrderResponse
             {
-                order = request.OrderId,
-                detail = "Error interno del servidor",
-                httpStatusCode = (int)HttpStatusCode.InternalServerError
+                Status = (int)HttpStatusCode.InternalServerError,
+                Message = "Error interno del servidor",
+                Data = null
             };
         }
     }
     private OrderResponse MappingResponse(PutItemResponse responseDB, string orderId)
     {
+        var orderResponse = new
+        {
+            OrderId = orderId,
+        };
+
         return new OrderResponse()
         {
-            order = (int)responseDB.HttpStatusCode == 200 ? orderId : string.Empty,
-            detail = (int)responseDB.HttpStatusCode == 200 ? "Se actualizado el registro exitosamente" : "Ha ocurrido un error en la actualización",
-            httpStatusCode = (int)responseDB.HttpStatusCode
+            Status = (int)responseDB.HttpStatusCode,
+            Message = (int)responseDB.HttpStatusCode == 200 ? "Se actualizado el registro exitosamente" : "Ha ocurrido un error al eliminar el registro",
+            Data = orderResponse
         };
     }
     #endregion

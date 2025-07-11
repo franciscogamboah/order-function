@@ -82,21 +82,21 @@ public class Function
                     result = await new GetOrderByIdQuery(_db).Execute(userId, orderId);
                     break;
                 case "POST":
-                    result = await new CreateOrderCommand(_db).Execute(order);
+                    result = await new CreateOrderCommand(_db).Execute(order!);
                     break;
                 case "PUT":
-                    result = await new UpdateOrderCommand(_db).Execute(order);
+                    result = await new UpdateOrderCommand(_db).Execute(order!);
                     break;
                 case "DELETE":
-                    result = await new DeleteOrderCommand(_db).Execute(order.UserId, order.OrderId);
+                    result = await new DeleteOrderCommand(_db).Execute(order!.UserId, order.OrderId);
                     break;
                 default:
-                    result = new OrderResponse { httpStatusCode = 405, detail = "Method Not Allowed" };
+                    result = new OrderResponse { Status = 405, Message = "Method Not Allowed" };
                     break;
             }
 
             Logger.LogInformation("Fin de la función");
-            return CreateCorsResponse(result.httpStatusCode, result.data!);
+            return CreateCorsResponse(result.Status, JsonSerializer.Serialize(result!));
         }
         catch (Exception ex)
         {

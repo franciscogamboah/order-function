@@ -1,7 +1,7 @@
 ﻿namespace Application.Commands.Create;
 
-public class CreateOrderResponse
+public class UpdateOrderResponse
 {
     public string OrderId { get; set; }
-    public string Detail { get; set; }
+    public string Message { get; set; }
 }

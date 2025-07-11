@@ -35,23 +35,30 @@ public class DeleteOrderCommand
                 UserId = userId,
                 OrderId = orderId
             };
+
             Logger.LogError(ex, "Error al eliminar el registro para la orden {@request}", request);
+
             return new OrderResponse
             {
-                order = orderId,
-                detail = "Error interno del servidor",
-                httpStatusCode = (int)HttpStatusCode.InternalServerError
+                Status = (int)HttpStatusCode.InternalServerError,
+                Message = "Error interno del servidor",
+                Data = null
             };
         }
     }
 
     private OrderResponse MappingResponse(DeleteItemResponse responseDB, string orderId)
     {
+        var orderResponse = new
+        {
+            OrderId = orderId,
+        };
+
         return new OrderResponse()
         {
-            order = (int)responseDB.HttpStatusCode == 200 ? orderId : string.Empty,
-            detail = (int)responseDB.HttpStatusCode == 200 ? "Se eliminado el registro satisfactoriamente" : "Ha ocurrido un error al eliminar el registro",
-            httpStatusCode = (int)responseDB.HttpStatusCode
+            Status = (int)responseDB.HttpStatusCode,
+            Message = (int)responseDB.HttpStatusCode == 200 ? "Se eliminado el registro satisfactoriamente" : "Ha ocurrido un error al eliminar el registro",
+            Data = orderResponse
         };
     }
     #endregion

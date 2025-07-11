@@ -1,8 +1,7 @@
 ﻿namespace Application.Common.Response;
 public class OrderResponse
 {
-    public string order { get; set; }
-    public string detail { get; set; }
-    public int httpStatusCode { get; set; }
-    public string? data {  get; set; }
+    public int Status { get; set; }
+    public string? Message { get; set; }
+    public dynamic? Data {  get; set; }
 }
