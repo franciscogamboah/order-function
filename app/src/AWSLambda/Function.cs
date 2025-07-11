@@ -32,14 +32,6 @@ public class Function
             return CreateCorsResponse(200, string.Empty);
         }
 
-        //var corsHeaders = new Dictionary<string, string>
-        //{
-        //    { "Content-Type", "application/json" },
-        //    { "Access-Control-Allow-Origin", "*" },
-        //    { "Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS" },
-        //    { "Access-Control-Allow-Headers", "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token" }
-        //};
-
         try
         {
             if (!request.Headers.TryGetValue("Authorization", out var authHeader) || string.IsNullOrEmpty(authHeader))
@@ -61,6 +53,17 @@ public class Function
 
             Logger.LogInformation("Token recibido: {token}", token);
 
+            string userId = string.Empty;
+            string orderId = string.Empty;
+
+            if (request.HttpMethod == "GET")
+            {
+                if (request.QueryStringParameters == null ||
+                    !request.QueryStringParameters.TryGetValue("userid", out userId!) ||
+                    !request.QueryStringParameters.TryGetValue("orderid", out orderId!))
+                    return CreateCorsResponse(400, "Faltan parámetros obligatorios: userid y orderid");
+            }
+
             OrderRequest order = null!;
             if (!string.IsNullOrWhiteSpace(request.Body))
             {
@@ -73,7 +76,7 @@ public class Function
             switch (request.HttpMethod)
             {
                 case "GET":
-                    result = await new GetOrderByIdQuery(_db).Execute(order.UserId, order.OrderId);
+                    result = await new GetOrderByIdQuery(_db).Execute(userId, orderId);
                     break;
                 case "POST":
                     result = await new CreateOrderCommand(_db).Execute(order);
@@ -97,20 +100,6 @@ public class Function
             Logger.LogError(ex, "Error interno en la función");
             return CreateCorsResponse(500, "Internal Server Error");
         }
-    }
-
-    private APIGatewayProxyResponse Response(OrderResponse response, Dictionary<string, string> corsHeaders)
-    {
-        return new()
-        {
-            StatusCode = response.httpStatusCode,
-            Body = JsonSerializer.Serialize(new
-            {
-                response.detail,
-                data = string.IsNullOrEmpty(response.data) ? null : JsonSerializer.Deserialize<object>(response.data)
-            }),
-            Headers = corsHeaders
-        };
     }
 
     private APIGatewayProxyResponse CreateCorsResponse(int statusCode, string body)

@@ -12,7 +12,6 @@ env:
   BUCKET_NAME: order-function-deploy-654654589924-us-east-1
 
   REST_API_ID: ${{ secrets.REST_API_ID }}
-  ORDER_RESOURCE_ID: ${{ secrets.ORDER_RESOURCE_ID }}
   ROOT_RESOURCE_ID: ${{ secrets.ROOT_RESOURCE_ID }}
 
 jobs:
@@ -59,4 +58,4 @@ jobs:
               RestApiId=$REST_API_ID \
               RootResourceId=$ROOT_RESOURCE_ID \
               LambdaExecutionRole=arn:aws:iam::654654589924:role/service-role/lamb_gamboa-role-w0fpkkqf
-
+              

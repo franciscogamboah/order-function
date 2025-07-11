@@ -5,6 +5,7 @@ using Application.Common.Response;
 using AWS.Lambda.Powertools.Logging;
 using Domain.Entities;
 using System.Net;
+using System.Text.Json;
 
 namespace Application.Commands.Update;
 public class UpdateOrderCommand

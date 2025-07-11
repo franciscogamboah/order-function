@@ -5,6 +5,7 @@ using Application.Common.Request;
 using Application.Common.Response;
 using Domain.Entities;
 using AWS.Lambda.Powertools.Logging;
+using System.Text.Json;
 
 namespace Application.Commands.Create;
 public class CreateOrderCommand
@@ -66,11 +67,17 @@ public class CreateOrderCommand
 
     private OrderResponse MappingResponse(PutItemResponse responseDB, string newOrder)
     {
+        var orderResponse = new CreateOrderResponse()
+        {
+            OrderId = newOrder
+        };
+
         return new OrderResponse()
         {
             order = (int)responseDB.HttpStatusCode == 200 ? newOrder : string.Empty,
             detail = (int)responseDB.HttpStatusCode == 200 ? "El registro se realizó exitosamente" : "Ha ocurrido un error en la inserción",
-            httpStatusCode = (int)responseDB.HttpStatusCode
+            httpStatusCode = (int)responseDB.HttpStatusCode,
+            data = JsonSerializer.Serialize(orderResponse)
         };
     }
     #endregion
